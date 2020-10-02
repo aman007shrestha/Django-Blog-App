@@ -1,0 +1,135 @@
+{% extends "blog/base.html" %}
+{% block content %}
+	<h1>Blog home! </h1>
+	{% for post in posts %}
+		<article class="media content-section">
+		<img class="rounded-circle article-img" src="{{post.author.profile.image.url }}">
+		  <div class="media-body">
+		    <div class="article-metadata">
+		    	<a href="{% url 'user-posts' post.author.username %}">
+		      {{ post.author }}</a>
+		      <small class="text-muted">{{ post.date_posted|date:"F d, Y" }}</small>
+		    </div>
+		    <h2><a class="article-title" href="{% url 'post-detail' post.id %}">{{ post.title }}</a></h2>
+		    	{% if post.content|length < 200 %}
+		    		{{ post.content }}
+		    	{% else %}
+		    		{{ post.content|slice:"0:200" }}.....
+		    		<a style='text-decoration:underline; color:green;' href="{% url 'post-detail' post.id %}"> Read more</a>
+		    	{% endif %}<br><hr>
+			    	<a style="display:inline; color: green;"href="{% url 'post-detail' post.id %}">
+			   <span class="fa-stack" style="vertical-align: middle;">
+        		<i class="fa fa-comments-o fa-stack-1x"></i>
+        	</span>
+        	{{post.number_of_comments}} Comments</a>
+
+        	<!-- ad like and dislike-->
+	        <!--the ad here is liked press to unlike
+	        the view is possible only for logged in user-->
+	        {% if user.is_authenticated %}
+	        <!-- dont display clickable unfav star for unfavorite post -->
+	        <a href='#' onclick="postLike('{% url 'post-unlike' post.id %}', {{post.id}}); return false;"
+	            {% if post.id not in likes %} style="display:none;" {% endif %} id = "like_{{post.id}}">
+	        <span class="fa-stack" style="vertical-align:middle;">
+	            <i class="fa fa-star fa-stack-1x" style="color:orange;"></i>
+	        </span>
+	        </a>
+	        <!-- If already is liked dont display clickable like  -->
+	        <a href="#" onclick="postLike('{% url 'post-like' post.id %}', {{ post.id }} ); return false;"
+	            {% if post.id in likes %} style="display:none;" {% endif %} id="unlike_{{post.id}}">
+	            <span class="fa-stack" style = "vertical-align:middle;">
+	                <i class="fa fa-star-o fa-stack-1x"></i>
+	            </span>
+	        </a><span style="color: green;">{{post.number_of_likes}} Stars</span>
+	        {% endif %}
+		    	
+		    	<!-- need a comment counter !-->
+		  	</div>
+		</article>
+	{% endfor %}
+	<!--bootstrap fashion attempt<br><br> -->
+	{% if posts.has_other_pages %}
+	<nav style="margin-bottom: 20px;" aria-label="Page navigation example">
+		<ul class="pagination">
+
+
+
+			{% if posts.has_previous %}
+			<li class="page-item">
+				<a class="page-link" href="?page={{ posts.previous_page_number }}" aria-label="Previous">
+		        <span aria-hidden="true">&laquo;</span>
+		        <span class="sr-only">Previous</span>
+		    	</a>
+			</li>
+			<li class="page-item"><a class="page-link" href="?page=1">First</a></li>
+
+			{% endif %}
+
+			{% for num in posts.paginator.page_range %}
+				{% if posts.number == num %}
+					<li class="page-item active"><a class="page-link" href="?page={{ num }}">{{num}}</a></li>
+					
+				{% elif num > posts.number|add:'-3' and num < posts.number|add:'3' %}
+					<li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+				{% endif %}
+			{% endfor %}
+
+
+
+			{% if posts.has_next %}
+			<li class="page-item"><a class="page-link" href="?page={{ posts.paginator.num_pages }}">Last</a></li>
+
+				<li class="page-item">
+			      <a class="page-link" href="?page={{ posts.next_page_number }}" aria-label="Next">
+			        <span aria-hidden="true">&raquo;</span>
+			        <span class="sr-only">Next</span>
+			      </a>
+			    </li>
+			{% endif %}
+
+			
+		</ul>
+	</nav>
+	{% endif %}
+	<!--
+	
+	<br><br>The corey way attempt<br><br>
+	
+	{% if posts.has_other_pages %}
+		{% if posts.has_previous %}
+			<a class="btn btn-outline-info mb-4" href="?page=1">First</a>
+			<a class="btn btn-outline-info mb-4" href="?page={{ posts.previous_page_number }}">Previous</a>
+		{% endif %}
+		{% for num in posts.paginator.page_range %}
+			{% if posts.number == num %}
+				<a class="btn btn-info mb-4" href="?page={{ num }}">{{num}}</a>
+			{% elif num > posts.number|add:'-3' and num < posts.number|add:'3' %}
+				<a class="btn btn-outline-info mb-4 mt-20" href="?page={{ num }}">{{num}}</a>
+				
+			{% endif %}
+			
+		{% endfor %}
+  
+
+    	{% if posts.has_next %}
+ 			<a class="btn btn-outline-info mb-4" href="?page={{ posts.next_page_number }}">Next</a>
+ 			<a class="btn btn-outline-info mb-4" href="?page={{ posts.paginator.num_pages }}">Last</a>
+    	{% endif %}
+	{% endif %}
+
+
+	-->
+
+<script>
+function postLike(url, post_id) {
+    console.log("Requesting Json");
+    $.post(url, {}, function(rowz){
+        console.log(url, 'fetched');
+        $("#unlike_"+post_id).toggle();
+        $("#like_"+post_id).toggle();
+    }).fail(function(xhr) {
+        alert('Url failed with' + xhr.status+' ' + url);
+    });
+}
+</script>
+{% endblock content %}

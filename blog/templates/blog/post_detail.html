@@ -1,0 +1,54 @@
+{% extends "blog/base.html" %}
+{% load humanize %}
+{% block content %}
+	
+	<article class="media content-section">
+	<img class="rounded-circle article-img" src="{{post.author.profile.image.url }}">
+	  <div class="media-body">
+	    <div class="article-metadata">
+	      <a class="mr-2" href="{% url 'user-posts' post.author.username %}">{{ post.author }}</a>
+	      <small class="text-muted">{{ poat.date_posted|date:"F d, Y" }}</small>
+	      	{% if request.user == post.author %}
+	        		<a class="btn btn-secondary btn-sm mt-1 mb-1" href="{% url 'post-update' post.id %}">Update</a>
+	        		<a class="btn btn-danger btn-sm mt-1 mb-1 " href="{% url 'post-delete' post.id %}">Delete</a>
+
+	   		{% endif %}
+	    </div>
+	    <h2 class="article-title">{{ post.title }}</h2>
+	    <p class="article-content">{{ post.content }}</p>
+	    <small>
+		(Posted: {{ post.date_posted|naturaltime }} by {{post.author}}) 
+		</small>
+	   	</div>
+	</article>
+	<hr>
+	<div class="content-section">
+	{% if user.is_authenticated %}
+	<p>
+	{% load crispy_forms_tags %}
+	<form method="post" action="{% url 'post-comment-create' post.id %}">
+		{% csrf_token %}
+		{{ comment_form|crispy }}
+		<input type="submit" name="" value="comment">
+		<input type="submit" name="" value="back" onclick="window.location.href='{% url 'blog-home' %}'; return false;">
+
+	</form>
+	{% endif %}
+	{% if comments %}
+		{% for comment in comments %}
+		<p>
+			<article style="border:2px solid #ed8780; border-radius: 10px; padding: 10px;">
+			<h3 style="display:inline;">{{comment.author}}</h3><span style="float:right;">({{ comment.updated_at|naturaltime }})</span><br>
+			{{comment.text}}
+			{% if comment.author == user or post.author == user %}
+				<a style="float: right;"href="{% url 'post-comment-delete' comment.id %}">delete</a>
+			{% endif %}
+			</article>
+		</p>
+		{% endfor %}
+	{% endif %}
+</p>
+</div>
+
+
+{% endblock content %}
